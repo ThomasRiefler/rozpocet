@@ -587,6 +587,14 @@ canvas{display:block;width:100%!important}
         <input type="file" id="importFile" accept=".json" style="display:none">
       </div>
     </div>
+
+    <div class="card">
+      <div class="card-head">Aplikace</div>
+      <div class="sync-card">
+        <button class="btn" id="updateBtn">🔄 Aktualizovat aplikaci</button>
+        <div class="hint" style="padding:6px 2px 0">Nové verze se instalují i samy, krátce po otevření appky. Aktuální verze: <b id="verLbl"></b></div>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -625,6 +633,8 @@ canvas{display:block;width:100%!important}
 // ═════════════════════════════════════════════════════════════
 //  CONFIG — data model identical to v1 (keeps existing data+sync)
 // ═════════════════════════════════════════════════════════════
+const APP_VER = 'v12'; // držet v souladu s verzí cache v sw.js
+
 // Sdílené úložiště: Google Apps Script web app (data v Google Drive rodiny)
 // — jsonblob.com opuštěn kvůli nespolehlivosti (mazal bloby).
 const FAMILY_JOIN_DEFAULT = 'https://script.google.com/macros/s/AKfycbyZ2dRJbCIOnFhO82bnHOkGZex7_-3SMwg11Ych0MSyNuvdAqv4AXIxWTEmx-dlO5vS/exec';
@@ -1510,7 +1520,38 @@ if(location.hash.startsWith('#join=')){
   setTimeout(()=>{ if(!familyUrl) joinFamily(url); },300);
 }
 
-if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+// ═══ automatické aktualizace appky ═══
+// service worker si sám stáhne novou verzi; jakmile je připravená a nic
+// není rozepsané, appka se jednou tiše obnoví — žádné zabíjení appky
+let swReg=null, updateReady=false;
+function maybeReload(){
+  if(!updateReady) return;
+  if(amount!==0 || editId) return;   // neruš rozdělaný zápis — počká na příště
+  updateReady=false;
+  toast('Instaluji novou verzi…');
+  setTimeout(()=>location.reload(),700);
+}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').then(reg=>{
+    swReg=reg;
+    reg.addEventListener('updatefound',()=>{
+      const nw=reg.installing;
+      if(nw) nw.addEventListener('statechange',()=>{
+        if(nw.state==='installed' && navigator.serviceWorker.controller){
+          updateReady=true; maybeReload();
+        }
+      });
+    });
+  }).catch(()=>{});
+  // kontrola nové verze: po návratu do appky a pak každých 30 minut
+  setInterval(()=>{ if(document.visibilityState==='visible'&&swReg) swReg.update().catch(()=>{}); },30*60*1000);
+}
+document.getElementById('updateBtn').onclick=async()=>{
+  toast('Hledám novou verzi…');
+  try{ if(swReg) await swReg.update(); }catch(e){}
+  setTimeout(()=>location.reload(),800);
+};
+document.getElementById('verLbl').textContent=APP_VER;
 
 // překreslení grafu při změně velikosti/otočení telefonu
 let rsT=null;
@@ -1567,6 +1608,9 @@ document.addEventListener('visibilitychange',()=>{
   // pojistka: osiřelé ztmavení pozadí bez klávesnice by blokovalo celou obrazovku
   if(!document.getElementById('keypad').classList.contains('show'))
     document.getElementById('sheetBack').classList.remove('show');
+  // po návratu zkontrolovat novou verzi appky (a doinstalovat odloženou)
+  if(swReg) swReg.update().catch(()=>{});
+  maybeReload();
   syncNow();
   if(hiddenAt && Date.now()-hiddenAt > 30*60*1000){
     resetEntryForm();               // po >30 min pryč začni s čistým formulářem (i čerstvým datem)

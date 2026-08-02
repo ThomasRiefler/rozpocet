@@ -42,8 +42,10 @@ Vlastní zlatá numerická klávesnice (bottom sheet) místo iOS klávesnice.
 Fonty: systémové (-apple-system) kvůli rychlosti. Vstupy min. 16px (jinak iOS zoomuje).
 
 ## Nasazení — POKAŽDÉ dodržet
-1. Před každým nasazením **zvednout verzi cache v `sw.js`** (`rozpocet-vN` → `rozpocet-vN+1`),
+1. Před každým nasazením **zvednout verzi cache v `sw.js`** (`rozpocet-vN` → `rozpocet-vN+1`)
+   a **stejně i `APP_VER` v index.html** (zobrazuje se v Nastavení → Aplikace),
    jinak se aktualizace nepropíše do nainstalovaných PWA.
+   Aktualizace se v telefonech instalují samy (SW updatefound → tichý reload, když nic není rozepsané).
 2. `git add -A && git commit && git push` — GitHub Pages nasadí automaticky z větve main
    (build trvá ~1 minutu; gh CLI je přihlášené jako ThomasRiefler).
 3. Po nasazení ověřit: `curl -s https://thomasriefler.github.io/rozpocet/sw.js | head -1`
