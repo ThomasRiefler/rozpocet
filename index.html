@@ -18,7 +18,7 @@
   --r:16px; --shadow:0 2px 14px rgba(53,44,34,.07);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{height:100%}
+html{height:100%;background:var(--espresso)} /* gumový scroll a krátké stránky: žádné bílé pruhy */
 body{min-height:100%}
 body{
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
@@ -164,6 +164,19 @@ html{-webkit-text-size-adjust:100%}
 .detail-row .note{flex:1;min-width:0}
 .detail-row .date{width:128px;font-size:13px;color:#6B5D48;padding:0 8px}
 
+/* lišta režimu úprav */
+.edit-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  background:#FFF3D6;border:1.5px solid #E8C877;border-radius:12px;
+  padding:8px 8px 8px 14px;margin-bottom:8px;
+  font-size:12.5px;font-weight:800;color:#8A6A2E;
+}
+.edit-bar button{
+  padding:7px 14px;border-radius:9px;
+  background:#F0E2C0;color:#6B5220;font-size:12px;font-weight:800;
+}
+.edit-bar button:active{transform:scale(.95)}
+
 /* ═══ SAVE ═══ */
 /* ukotvený blok: tlačítko + indikátor, vždy viditelný nad spodní navigací,
    s jasným rozestupem a plynulým přechodem pozadí */
@@ -279,6 +292,16 @@ html{-webkit-text-size-adjust:100%}
 .prog-fill{height:100%;border-radius:6px;transition:width .5s cubic-bezier(.3,1,.4,1)}
 .prog-left{font-size:10px;color:#B3A78F;font-weight:700;margin-top:4px;text-align:right}
 .prog-left.over{color:var(--red)}
+.prog-chev{font-size:11px;color:#B3A78F;font-weight:800}
+
+/* rozklik kategorie → podkategorie */
+.sub-list{margin-top:8px;border-top:1px dashed var(--line);padding-top:6px}
+.sub-row{display:flex;align-items:center;gap:8px;padding:5px 0 5px 6px;font-size:12.5px}
+.sub-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;opacity:.85}
+.sub-name{flex:1;font-weight:700;color:#4A3F30;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sub-pct{font-size:10.5px;font-weight:700;color:#B3A78F;width:34px;text-align:right}
+.sub-amt{font-weight:800;flex-shrink:0}
+.sub-grp{font-size:10px;font-weight:800;color:#8A7B63;letter-spacing:.8px;margin-top:6px;padding-left:6px}
 
 .chart-toggle{display:flex;gap:4px}
 .chart-toggle button{
@@ -480,6 +503,10 @@ canvas{display:block;width:100%!important}
     </div>
 
     <div class="save-dock">
+      <div class="edit-bar" id="editBar" hidden>
+        <span>✏️ Upravuješ záznam</span>
+        <button id="editCancel">Zrušit</button>
+      </div>
       <button class="save-btn" id="saveBtn"><span id="saveIco"></span><span id="saveTxt">Uložit výdaj</span></button>
     </div>
   </div>
@@ -688,6 +715,9 @@ let myName    = localStorage.getItem('myName') || '';
 let viewMonth = new Date();
 let selCat = null, selWho = myName || null, selFund = 'in';
 let savedUntil = 0; // do kdy běží zpětná vazba „Uloženo“ (pojistka proti zamrzlému timeoutu)
+let editId = null;        // id záznamu, který se právě upravuje (null = nový záznam)
+let expandedProg = null;  // rozkliknutá kategorie v přehledu
+let syncStartedAt = 0;    // hlídač zamrzlé synchronizace
 let amount = 0;
 let dirty = false, syncing = false, syncOK = false;
 
@@ -741,14 +771,21 @@ function refreshPill(){
 // Úložiště: Google Apps Script web app (data v Google Drive rodiny).
 // GET vrátí sdílený stav; POST (text/plain kvůli CORS) pošle lokální stav,
 // server ho sám sloučí a vrátí výsledek — appka ho převezme.
+// fetch s časovým limitem — zavěšený požadavek (výpadek sítě, přechod wifi/LTE)
+// nesmí navždy zablokovat synchronizaci
+function fetchT(url,opts,ms){
+  const ctl=new AbortController();
+  const t=setTimeout(()=>ctl.abort(),ms||15000);
+  return fetch(url,{...(opts||{}),signal:ctl.signal}).finally(()=>clearTimeout(t));
+}
 async function syncNow(){
   if(!familyUrl||syncing) return;
-  syncing=true; refreshPill();
+  syncing=true; syncStartedAt=Date.now(); refreshPill();
   try{
     const wasDirty=dirty;
     const r=wasDirty
-      ? await fetch(familyUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(S)})
-      : await fetch(familyUrl);
+      ? await fetchT(familyUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(S)})
+      : await fetchT(familyUrl);
     if(r.ok){
       const remote=await r.json();
       if(remote&&remote.tx){
@@ -813,14 +850,29 @@ function updateSaveBtn(){
     btn.classList.remove('saved');     // timeout se nespustil (uspaná appka) → ozdravit
   }
   const ico=document.getElementById('saveIco'), txt=document.getElementById('saveTxt');
+  document.getElementById('editBar').hidden = !editId;
   if(amount===0){
     ico.innerHTML=SVG_PAD; txt.textContent='Zadat částku';
     btn.classList.add('entry');
   }else{
-    ico.innerHTML=SVG_SAVE; txt.textContent='Uložit výdaj';
+    ico.innerHTML=SVG_SAVE; txt.textContent=editId?'Uložit změny':'Uložit výdaj';
     btn.classList.remove('entry');
   }
 }
+
+// ═══ úprava existujícího záznamu (ťuknutím v historii) ═══
+function startEdit(t){
+  editId=t.id;
+  amount=t.amt; selCat=t.cat; selWho=t.who; selFund=t.fund||'in';
+  document.getElementById('noteInput').value=t.note||'';
+  document.getElementById('dateInput').value=t.d||todayISO();
+  document.querySelectorAll('.cat-chip').forEach((x,i)=>x.classList.toggle('sel',CAT_DEFS[i].key===t.cat));
+  syncSegs(); renderCatExtra(); renderAmt();
+  document.querySelector('.nav-btn[data-view="add"]').click();
+  window.scrollTo(0,0);
+}
+function cancelEdit(){ editId=null; resetEntryForm(); }
+document.getElementById('editCancel').addEventListener('click',cancelEdit);
 function openKeypad(){
   document.getElementById('sheetBack').classList.add('show');
   document.getElementById('keypad').classList.add('show');
@@ -928,12 +980,14 @@ document.getElementById('saveBtn').addEventListener('click',()=>{
   if(!selCat){ toast('Vyber kategorii','⚠️'); return; }
   if(!selWho){ toast('Vyber, kdo utratil','⚠️'); return; }
 
-  const id=uid();
+  const wasEdit=!!editId;
+  const id=editId||uid();
   S.tx[id]={ id, amt:amount, cat:selCat, who:selWho,
     note:document.getElementById('noteInput').value.trim(),
     d:document.getElementById('dateInput').value||todayISO(),
     ts:Date.now() };
   if(FUND_CATS.includes(selCat)) S.tx[id].fund=selFund; // 'in' = odklad do fondu, 'out' = čerpání z fondu
+  editId=null;
   persist();
   scheduleSync();
 
@@ -955,6 +1009,8 @@ document.getElementById('saveBtn').addEventListener('click',()=>{
   selFund='in'; renderCatExtra();
   // plátce se vrátí na majitele telefonu (pro další záznam)
   if(myName){ selWho=myName; syncSegs(); }
+  // po úpravě z historie se vrátit zpět na historii
+  if(wasEdit) document.querySelector('.nav-btn[data-view="history"]').click();
 });
 
 function toast(msg,ico){
@@ -1009,23 +1065,33 @@ function renderOverview(){
   document.getElementById('heroSpent').textContent='Utraceno: '+fmt(spent);
   document.getElementById('heroPlan').textContent='Plán: '+fmt(plan);
 
+  const monthAll=txInMonth();
   const pl=document.getElementById('progList'); pl.innerHTML='';
   CAT_DEFS.forEach(c=>{
     const p=S.plan[c.key]?.v??c.plan;
     const sp=spentBy[c.key];
     const cp=p>0?Math.min(sp/p*100,100):0;
     const over=sp>p;
+    const catTx=monthAll.filter(t=>t.cat===c.key);
+    const hasDetail=catTx.length>0;
+    const open=expandedProg===c.key;
     const row=document.createElement('div');
     row.className='prog-row';
+    if(hasDetail) row.style.cursor='pointer';
     row.innerHTML=`
       <div class="prog-top">
         ${catIcon(c,26,8)}
-        <span class="prog-name">${c.full}</span>
+        <span class="prog-name">${c.full}${hasDetail?` <span class="prog-chev">${open?'▴':'▾'}</span>`:''}</span>
         <span class="prog-nums"><b style="color:${over?'var(--red)':c.color}">${fmt(sp)}</b> / ${fmt(p)}</span>
       </div>
       <div class="prog-bar"><div class="prog-fill" style="width:${cp}%;background:${over?'var(--red)':c.color}"></div></div>
       <div class="prog-left ${over?'over':''}">${over?'překročeno o '+fmt(sp-p):'zbývá '+fmt(p-sp)}</div>
-      ${FUND_CATS.includes(c.key)?`<div class="prog-left" style="text-align:left;font-size:11px;color:${fundBal[c.key]<0?'var(--red)':'#2E8E89'}">🏦 ve fondu naspořeno: <b>${fmt(fundBal[c.key])}</b></div>`:''}`;
+      ${FUND_CATS.includes(c.key)?`<div class="prog-left" style="text-align:left;font-size:11px;color:${fundBal[c.key]<0?'var(--red)':'#2E8E89'}">🏦 ve fondu naspořeno: <b>${fmt(fundBal[c.key])}</b></div>`:''}
+      ${open?buildSubList(c,catTx,sp):''}`;
+    if(hasDetail) row.addEventListener('click',()=>{
+      expandedProg = open?null:c.key;
+      renderOverview();
+    });
     pl.appendChild(row);
   });
 
@@ -1035,6 +1101,43 @@ function renderOverview(){
       : CAT_DEFS.filter(c=>spentBy[c.key]>0).map(c=>({name:c.name,color:c.color,val:spentBy[c.key]}));
     drawChart(items,spent);
   });
+}
+
+// rozpad kategorie na podkategorie (pro rozklik v přehledu)
+function buildSubList(c,catTx,catSpent){
+  const groups={};
+  catTx.forEach(t=>{
+    if(t.fund==='out') return;
+    const n=(t.note||'').trim()||'Ostatní';
+    groups[n]=(groups[n]||0)+t.amt;
+  });
+  const subs=Object.entries(groups).sort((a,b)=>b[1]-a[1]);
+  let html='<div class="sub-list">';
+  subs.forEach(([n,v])=>{
+    const pct=catSpent>0?Math.round(v/catSpent*100):0;
+    html+=`<div class="sub-row">
+      <span class="sub-dot" style="background:${c.color}"></span>
+      <span class="sub-name">${n}</span>
+      <span class="sub-pct">${pct} %</span>
+      <span class="sub-amt" style="color:${c.color}">${fmt(v)}</span>
+    </div>`;
+  });
+  // čerpání z fondu (nepočítá se do měsíce, ale ať je vidět, za co se utrácelo)
+  const outs=catTx.filter(t=>t.fund==='out');
+  if(outs.length){
+    const og={};
+    outs.forEach(t=>{ const n=(t.note||'').trim()||'Ostatní'; og[n]=(og[n]||0)+t.amt; });
+    html+=`<div class="sub-grp">🏦 čerpáno z fondu (mimo měsíční plán)</div>`;
+    Object.entries(og).sort((a,b)=>b[1]-a[1]).forEach(([n,v])=>{
+      html+=`<div class="sub-row">
+        <span class="sub-dot" style="background:#2E8E89"></span>
+        <span class="sub-name">${n}</span>
+        <span class="sub-pct"></span>
+        <span class="sub-amt" style="color:#2E8E89">${fmt(v)}</span>
+      </div>`;
+    });
+  }
+  return html+'</div>';
 }
 
 // podrobný rozpad: hlavní kategorie → podkategorie podle štítků (poznámek)
@@ -1224,6 +1327,11 @@ function renderHistory(){
         toast('Výdaj smazán');
         renderHistory();
       };
+      // ťuknutí na záznam (mimo ✕) → úprava
+      row.addEventListener('click',e=>{
+        if(e.target.closest('.tx-del')) return;
+        startEdit(t);
+      });
       card.appendChild(row);
     });
   });
@@ -1377,6 +1485,8 @@ document.getElementById('importFile').addEventListener('change',e=>{
 // ═════════════════════════════════════════════════════════════
 document.querySelectorAll('.nav-btn').forEach(b=>{
   b.onclick=()=>{
+    // odchod z Přidat během úpravy = zrušení úpravy
+    if(b.dataset.view!=='add' && editId){ editId=null; resetEntryForm(); }
     document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
     document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');
@@ -1428,13 +1538,19 @@ function autoJoin(){
 if(familyUrl) syncNow(); else setTimeout(autoJoin,600);
 setInterval(()=>{
   if(document.visibilityState!=='visible') return;
+  // hlídač: kdyby synchronizace zůstala viset (uspání appky uprostřed požadavku), uvolnit
+  if(syncing && Date.now()-syncStartedAt>30000) syncing=false;
   if(familyUrl) syncNow(); else autoJoin();
 },25000);
+
+// požádat iOS o trvalé úložiště (menší riziko vymazání lokálních dat systémem)
+if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
 
 // návrat do appky (iOS PWA se neresetuje, jen probudí):
 // synchronizovat, ozdravit tlačítko a po delší pauze zahodit rozepsaný záznam
 let hiddenAt=0;
 function resetEntryForm(){
+  editId=null;
   amount=0; selCat=null; selFund='in';
   document.getElementById('noteInput').value='';
   document.getElementById('dateInput').value=todayISO();
@@ -1446,6 +1562,11 @@ function resetEntryForm(){
 }
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden'){ hiddenAt=Date.now(); return; }
+  // probuzení: uvolnit případně zamrzlou synchronizaci (uspáno uprostřed požadavku)
+  if(syncing && Date.now()-syncStartedAt>10000) syncing=false;
+  // pojistka: osiřelé ztmavení pozadí bez klávesnice by blokovalo celou obrazovku
+  if(!document.getElementById('keypad').classList.contains('show'))
+    document.getElementById('sheetBack').classList.remove('show');
   syncNow();
   if(hiddenAt && Date.now()-hiddenAt > 30*60*1000){
     resetEntryForm();               // po >30 min pryč začni s čistým formulářem (i čerstvým datem)
