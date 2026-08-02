@@ -1,0 +1,13 @@
+{
+  "name": "Rozpočet rodiny Riefler",
+  "short_name": "Rozpočet",
+  "description": "Sdílený rodinný rozpočet — sledování denních výdajů",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F6F1E8",
+  "theme_color": "#352C22",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
