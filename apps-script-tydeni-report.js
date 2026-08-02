@@ -19,7 +19,7 @@
 
 // ═══════════ NASTAVENÍ ═══════════
 const RECIPIENTS = ['thomas@2din.cz', 'ancikk90@gmail.com'];
-const APP_URL    = 'https://rodrozpocet.netlify.app';
+const APP_URL    = 'https://thomasriefler.github.io/rozpocet/';
 const DATA_FILE  = 'rozpocet-riefler-data.json';
 
 // ═══════════ A) SYNCHRONIZAČNÍ SERVER (web app) ═══════════

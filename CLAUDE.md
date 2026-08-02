@@ -5,7 +5,8 @@ PWA aplikace pro sdílený rodinný rozpočet Thomase a Anny (2 iPhony).
 Denní zapisování výdajů proti měsíčnímu plánu po kategoriích, synchronizace
 mezi telefony v reálném čase. Instaluje se přes Safari → „Přidat na plochu".
 
-- **Produkce:** https://rodrozpocet.netlify.app (Netlify projekt `rodrozpocet`)
+- **Produkce:** https://thomasriefler.github.io/rozpocet/ (GitHub Pages, repo ThomasRiefler/rozpocet)
+  — dřív rodrozpocet.netlify.app (opuštěno 1. 8. 2026: Netlify blokoval deploye kvůli kreditům)
 - **Jazyk UI:** čeština
 - **Uživatelé:** 2 (Thomas, Anna) — nejde o veřejný produkt
 
@@ -43,10 +44,12 @@ Fonty: systémové (-apple-system) kvůli rychlosti. Vstupy min. 16px (jinak iOS
 ## Nasazení — POKAŽDÉ dodržet
 1. Před každým nasazením **zvednout verzi cache v `sw.js`** (`rozpocet-vN` → `rozpocet-vN+1`),
    jinak se aktualizace nepropíše do nainstalovaných PWA.
-2. `netlify deploy --prod --dir=.` (projekt je propojený přes `netlify link` na site `rodrozpocet`)
-3. Po nasazení ověřit: `curl -s https://rodrozpocet.netlify.app | grep "ČÁSTKA VÝDAJE"`
-   (nebo aktuální rozlišovací text nové verze)
+2. `git add -A && git commit && git push` — GitHub Pages nasadí automaticky z větve main
+   (build trvá ~1 minutu; gh CLI je přihlášené jako ThomasRiefler).
+3. Po nasazení ověřit: `curl -s https://thomasriefler.github.io/rozpocet/sw.js | head -1`
+   (musí vracet novou verzi cache) + rozlišovací text nové verze v index.html.
 4. Změny se v telefonech projeví po zavření a druhém otevření appky.
+   Pozn.: GitHub Pages ignoruje netlify.toml hlavičky — sw.js se cachuje max 10 min, to stačí.
 
 ## Zásady
 - Zpětná kompatibilita dat je svatá: existující `budgetState` a `familyUrl` musí fungovat i po změnách.
