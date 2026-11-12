@@ -344,7 +344,7 @@ input[type=range]{width:100%;height:36px;accent-color:var(--acc)}
 <div class="app" id="app" data-d="a" data-m="dark" data-bg="espresso" data-glass="on"></div>
 <script>
 'use strict';
-const APP_VER='v1.4.3';
+const APP_VER='v1.4.4';
 /* Testovací verze: data rozpočtu se jen čtou z dnešní aplikace (kopie), nikdy se do ní nezapisuje. */
 const SOURCE_URL='https://script.google.com/macros/s/AKfycbyZ2dRJbCIOnFhO82bnHOkGZex7_-3SMwg11Ych0MSyNuvdAqv4AXIxWTEmx-dlO5vS/exec';
 const KEY='rodina.v1', PKEY='rodina.prefs', NOWKEY='rodina.now', SKEY='rodina.sync';
@@ -812,6 +812,7 @@ function vSet(){
     ${SYNC_URL?'':`<label for="syncU">Adresa rodinného skriptu</label><input class="inp" id="syncU" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(syncCfg.u)}" placeholder="https://script.google.com/macros/s/…/exec">`}
     <label for="syncK">Kód rodiny</label><input class="inp" id="syncK" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(syncCfg.k)}" placeholder="dostaneš od Thomase">
     <div class="row"><div class="grow s" id="syncState">${syncState||(syncOn()?'Propojeno':'Zatím nepropojeno, data jsou jen v tomhle telefonu.')}</div><button class="btn sm" data-a="syncsave">${syncOn()?'Uložit':'Propojit'}</button></div>
+    <div id="devList" style="display:flex;flex-direction:column;gap:6px">${devHtml()}</div>
     <p class="note">Stejný kód zadejte na obou telefonech. Zápisy se pak potkají samy do pár vteřin.</p></div>`;
 }
 
@@ -975,11 +976,21 @@ async function doImport(){
 let syncCfg={u:'',k:''};try{Object.assign(syncCfg,JSON.parse(store.get(SKEY)||'{}'));}catch(e){}
 const syncUrl=()=>SYNC_URL||syncCfg.u, syncOn=()=>!!(syncUrl()&&syncCfg.k);
 let syncing=false,syncAgain=false,syncT=null,syncState='';
+/* Kdo je propojený: každé zařízení při synchronizaci zapíše značku dev|<id> do veze (skript ji slučuje jako ostatní záznamy, takže nepotřebuje nové nasazení) */
+const DKEY='rodina.dev';let devId=store.get(DKEY);if(!devId){devId=uid();store.set(DKEY,devId);}
+const devOs=()=>{const u=navigator.userAgent;return /iPad/.test(u)?'iPad':/iPhone|iPod/.test(u)?'iPhone':/Android/.test(u)?'Android':'počítač';};
+function devices(){const now=Date.now(),g={};for(const [k,x] of Object.entries(S.veze||{})){if(!k.startsWith('dev|')||!x||!x.dev||now-x.ts>14*864e5)continue;const n=x.dev.who+'|'+x.dev.os;if(!g[n]||g[n].ts<x.ts)g[n]={...x.dev,ts:x.ts};}return Object.values(g).sort((a,b)=>b.ts-a.ts);}
+function ago(ts){const m=Math.round((Date.now()-ts)/6e4);if(m<2)return 'právě teď';if(m<60)return 'před '+m+' min';const h=Math.round(m/60);if(h<24)return 'před '+h+' h';const d=Math.round(h/24);return d===1?'včera':'před '+d+' dny';}
+function devHtml(){if(!syncOn())return '';const d=devices();if(!d.length)return '';
+  const who=new Set(d.map(x=>x.who)),both=who.has('Thomas')&&who.has('Anna');
+  return `<div class="sync${both?' ok':''}" id="devSum"><i></i><b>${both?'Thomas i Anna jsou propojení':'Zatím je propojený jen '+esc([...who].join(', '))}</b></div>`+
+    d.map(x=>`<div class="sync${Date.now()-x.ts<864e5?' ok':''}"><i></i>${esc(x.who)}, ${esc(x.os)}: ${ago(x.ts)}</div>`).join('');}
 function syncSoon(){if(!syncOn())return;clearTimeout(syncT);syncT=setTimeout(syncNow,1500);}
-function syncLabel(){const u=$('#syncState');if(u)u.textContent=syncState;}
+function syncLabel(){const u=$('#syncState');if(u)u.textContent=syncState;const l=$('#devList');if(l)l.innerHTML=devHtml();}
 async function syncNow(first){
   if(!syncOn())return;if(syncing){syncAgain=true;return;}syncing=true;clearTimeout(syncT);
   try{const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),25000);
+    S.veze=S.veze||{};S.veze['dev|'+devId]={v:'',ts:Date.now(),dev:{who:PR.me,os:devOs(),ver:APP_VER}};
     const {imported,...state}=S;
     const r=await fetch(syncUrl(),{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({k:syncCfg.k,state}),signal:ctl.signal,cache:'no-store'});clearTimeout(tm);
     const o=await r.json();if(o.chyba)throw new Error(/klíč/i.test(o.chyba)?'klic':o.chyba);if(!o.budget||!o.tasks)throw new Error('tvar');
