@@ -118,6 +118,8 @@ textarea.inp{min-height:76px;resize:vertical}
 .preset span{font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums}
 .monthnav{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .monthnav b{font-size:16px}
+.monthnav.mtop{padding:0 2px 10px}
+[data-d="a"] .monthnav.mtop b{color:var(--hdr)}
 .rc{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
 .rc:first-child{border-top:0;padding-top:0}
 .rc .th{width:40px;height:40px;border-radius:10px;background:var(--card2);display:grid;place-items:center;color:var(--mut);overflow:hidden}
@@ -342,7 +344,7 @@ input[type=range]{width:100%;height:36px;accent-color:var(--acc)}
 <div class="app" id="app" data-d="a" data-m="dark" data-bg="espresso" data-glass="on"></div>
 <script>
 'use strict';
-const APP_VER='v1.4.1';
+const APP_VER='v1.4.2';
 /* Testovací verze: data rozpočtu se jen čtou z dnešní aplikace (kopie), nikdy se do ní nezapisuje. */
 const SOURCE_URL='https://script.google.com/macros/s/AKfycbyZ2dRJbCIOnFhO82bnHOkGZex7_-3SMwg11Ych0MSyNuvdAqv4AXIxWTEmx-dlO5vS/exec';
 const KEY='rodina.v1', PKEY='rodina.prefs', NOWKEY='rodina.now', SKEY='rodina.sync';
@@ -739,7 +741,7 @@ function quickSpend(){const who=qWho||PR.me;
 function vPenize(){
   const s=stats(month),pr=presets(),rec=recurring(),isCur=month===today().slice(0,7);
   const recSum=rec.reduce((a,r)=>a+r.amt,0);
-  return `${isCur?quickSpend():''}<div class="card"><div class="monthnav"><button class="arrow" data-a="month" data-n="-1" aria-label="Předchozí měsíc">${I.l}</button><b>${monthName(month)}</b><button class="arrow" data-a="month" data-n="1" aria-label="Další měsíc" ${isCur?'disabled style="opacity:.3"':''}>${I.r}</button></div>
+  return `<div class="monthnav mtop"><button class="arrow" data-a="month" data-n="-1" aria-label="Předchozí měsíc">${I.l}</button><b>${monthName(month)}</b><button class="arrow" data-a="month" data-n="1" aria-label="Další měsíc" ${isCur?'disabled style="opacity:.3"':''}>${I.r}</button></div>${isCur?quickSpend():''}<div class="card">
     ${isCur?`<div class="ch"><h4>Den ${s.day} z ${s.dim}</h4>${statusLine(s)}</div>${paceBar(s)}${kpis(s)}`:`<div class="row"><div class="grow"><div class="big">${fmt(s.total)}</div><div class="mut">utraceno z plánu ${fmt(s.plan)}</div></div><span class="status ${s.total>s.plan?'warn':'ok'}">${s.total>s.plan?I.warn+'nad plánem o '+fmt(s.total-s.plan):I.ok+'v plánu'}</span></div>`}</div>
   ${pr.length&&isCur?`<div class="card"><div class="ch"><h4>Na jedno ťuknutí</h4><span class="mut">opakuje se 3× a víc</span></div><div class="presets">${pr.map((p,i)=>`<button class="preset" data-a="preset" data-i="${i}"><b>${esc(p.note)}</b><span>${fmt(p.amt)}</span></button>`).join('')}</div></div>`:''}
   <div class="card"><div class="ch"><h4>Průběh měsíce</h4><span class="mut">ťukni do grafu</span></div>${burnup(s,month)}</div>
@@ -926,7 +928,10 @@ function act(el,ev){
   case 'veze': {const e=S.events[d.id];openSheet({k:'veze',id:d.id,on:d.on,title:e?e.title:''});break;}
   case 'vezeset': {const k=sheet.id+'|'+sheet.on;S.veze[k]={v:d.v==='Nikdo'?'':d.v,ts:Date.now()};persist();closeSheet();toast(d.v==='Nikdo'?'Zatím nikdo':'Veze '+d.v,true);break;}
   case 'txall': txAll=true;render(true);break;
-  case 'month': {txAll=false;const n=prevMonth(month,-(+d.n));if(n<=today().slice(0,7))month=n;render(true);break;}
+  case 'month': {txAll=false;const n=prevMonth(month,-(+d.n));if(n>today().slice(0,7))break;month=n;
+    // přepínač měsíce je nahoře nad rychlým zápisem, takže zůstane pod prstem; vyrovnání pro jistotu, kdyby se nad ním něco změnilo
+    const nav=$('.monthnav'),y0=nav?nav.getBoundingClientRect().top:0;render(true);
+    const nav2=$('.monthnav'),sc=$('#sc');if(nav&&nav2&&sc)sc.scrollTop+=nav2.getBoundingClientRect().top-y0;break;}
   case 'pme': PR.me=d.v;savePrefs();render(true);break;
   case 'pstart': PR.start=d.v;savePrefs();render(true);toast(d.v==='zapis'?'Po otevření rovnou Peníze se zápisem útraty':'Po otevření přehled dne');break;
   case 'pd': PR.d=d.v;savePrefs();render(true);break;
