@@ -1,3 +1,7 @@
+> **Od 12. 11. 2026 tu běží nová aplikace Rodina Riefler (v1.4.1).** Zdroj a testy jsou v
+> `osobni/rodinna-aplikace/app/`, sem se jen kopíruje index.html, sw.js, manifest.json a ikony.
+> Text níž popisuje starou v12, její skript slouží už jen jako zdroj historie (jen čtení).
+
 # Rodinný Rozpočet — kontext projektu
 
 ## Co to je
