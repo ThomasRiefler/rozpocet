@@ -26,28 +26,28 @@ body{font-family:var(--sys);font-size:15px;line-height:1.4;-webkit-text-size-adj
 @media (min-width:560px){.app{box-shadow:0 0 0 1px rgba(255,255,255,.06),0 0 80px rgba(0,0,0,.5)}}
 .scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scrollbar-width:none}
 .scroll::-webkit-scrollbar{display:none}
-.num{font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
 .dot{width:10px;height:10px;border-radius:50%;flex:none;display:inline-block}
 .row{display:flex;align-items:center;gap:10px;min-width:0}
 .grow{flex:1;min-width:0}
 .t{font-weight:650;overflow-wrap:anywhere}
 .s{font-size:12.5px;color:var(--mut)}
 .mut{color:var(--mut);font-size:13px}
-.big{font-size:36px;font-weight:800;letter-spacing:-.03em;line-height:1.05;font-variant-numeric:tabular-nums}
+.big{white-space:nowrap;font-size:clamp(30px,9.4vw,36px);font-weight:800;letter-spacing:-.03em;line-height:1.05;font-variant-numeric:tabular-nums}
 .card{background:var(--card);border-radius:24px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0;overflow-wrap:anywhere}
 .ch{display:flex;justify-content:space-between;align-items:baseline;gap:4px 10px;flex-wrap:wrap}
 .ch h4{margin:0;font-size:13px;font-weight:700;color:var(--mut)}
-.app .lnk{color:var(--acc-t);font-size:13px;font-weight:700;padding:6px 0;min-height:32px}
+.app .lnk{color:var(--acc-t);font-size:13px;font-weight:700;padding:6px 0 6px 12px;min-height:44px;margin:-6px 0;display:inline-flex;align-items:center}
 .list>.row{padding:10px 0;border-top:1px solid var(--line)}
 .list>.row:first-child{border-top:0;padding-top:2px}
 .time{font-weight:700;font-size:14px;width:46px;flex:none;font-variant-numeric:tabular-nums}
 .app .chip{font-size:12px;font-weight:700;padding:5px 10px;border-radius:99px;background:var(--card2);white-space:nowrap;min-height:28px;display:inline-flex;align-items:center;gap:5px}
-.app button.chip{min-height:36px;padding:6px 12px}
+.app button.chip{min-height:44px;padding:6px 14px}
 .app .chip.need{background:transparent;box-shadow:inset 0 0 0 1.5px var(--warn);color:var(--warn)}
 .bar{height:8px;border-radius:99px;background:var(--card2);overflow:hidden}
 .bar i{display:block;height:100%;border-radius:99px;background:var(--acc)}
 .seg{display:flex;background:var(--card2);border-radius:14px;padding:3px;gap:3px}
-.app .seg button{flex:1;padding:9px 4px;border-radius:11px;font-size:13px;font-weight:700;color:var(--mut);min-height:40px;text-align:center}
+.app .seg button{flex:1;padding:9px 4px;border-radius:11px;font-size:13px;font-weight:700;color:var(--mut);min-height:44px;text-align:center}
 .app .seg button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.15)}
 .app .chk{width:44px;height:44px;margin:-8px -6px -8px -10px;flex:none;display:grid;place-items:center}
 .chk>span{width:28px;height:28px;border-radius:9px;border:2px solid var(--mut);display:grid;place-items:center}
@@ -55,7 +55,7 @@ body{font-family:var(--sys);font-size:15px;line-height:1.4;-webkit-text-size-adj
 .done .chk>span{background:var(--acc);border-color:var(--acc);color:var(--on-acc)}
 .done .chk svg{opacity:1}
 .done .t{text-decoration:line-through;color:var(--mut)}
-.app .ttxt{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:2px 0;min-height:40px;text-align:left}
+.app .ttxt{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:2px 0;min-height:44px;text-align:left}
 .desc{font-size:12.5px;color:var(--mut);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 .due{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--card2);color:var(--ink);white-space:nowrap}
 .due.soon{color:var(--warn);box-shadow:inset 0 0 0 1.5px var(--warn);background:transparent}
@@ -63,13 +63,13 @@ body{font-family:var(--sys);font-size:15px;line-height:1.4;-webkit-text-size-adj
 .app .btn{border-radius:16px;min-height:48px;padding:0 18px;font-weight:800;font-size:16px;background:var(--acc);color:var(--on-acc);display:inline-flex;align-items:center;justify-content:center;gap:8px}
 .app .btn.sec{background:var(--card2);color:var(--ink)}
 .app .btn.dang{background:transparent;color:var(--warn);box-shadow:inset 0 0 0 1.5px var(--warn)}
-.app .btn.sm{min-height:40px;font-size:14px;padding:0 14px;border-radius:13px}
+.app .btn.sm{min-height:44px;font-size:14px;padding:0 14px;border-radius:13px}
 .inp{border:1px solid var(--line);background:var(--inp);color:var(--ink);border-radius:14px;padding:11px 12px;width:100%;min-width:0}
 textarea.inp{min-height:76px;resize:vertical}
 .field{display:flex;flex-direction:column;gap:6px;min-width:0}
 .field>label{font-size:12px;font-weight:700;color:var(--mut)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.app .tlink{font-size:13px;font-weight:650;color:var(--mut);align-self:flex-start;min-height:36px;padding:4px 0}
+.app .tlink{font-size:13px;font-weight:650;color:var(--mut);align-self:flex-start;min-height:44px;padding:4px 0}
 .status{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700}
 .status svg{width:16px;height:16px;flex:none}
 .status.ok{color:var(--good)} .status.warn{color:var(--warn)}
@@ -80,9 +80,10 @@ textarea.inp{min-height:76px;resize:vertical}
 .kpis{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-radius:16px;overflow:hidden}
 .kpis div{background:var(--card);padding:12px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .kpis small{font-size:12px;color:var(--mut);font-weight:600}
-.kpis b{font-size:clamp(16px,4.8vw,19px);font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.kpis b{font-size:clamp(16px,4.8vw,19px);font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
 .donut-wrap{display:grid;grid-template-columns:140px minmax(0,1fr);gap:14px;align-items:center}
-@media (max-width:359px){.donut-wrap{grid-template-columns:1fr;justify-items:center}}
+@media (max-width:419px){.donut-wrap{grid-template-columns:1fr;justify-items:center}}
+.legend .grow{overflow-wrap:normal;word-break:normal}
 .donut{width:140px;height:140px}
 .legend{display:flex;flex-direction:column;gap:7px;min-width:0;width:100%}
 .legend .row{font-size:13px;gap:8px}
@@ -109,7 +110,7 @@ textarea.inp{min-height:76px;resize:vertical}
 .wd.today b{text-decoration:underline;text-underline-offset:3px}
 .app .wd[aria-pressed="true"]{background:var(--acc);color:var(--on-acc)}
 .weekhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.app .arrow{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--card2)}
+.app .arrow{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--card2)}
 .arrow svg{width:18px;height:18px}
 .hscroll{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px}
 .hscroll::-webkit-scrollbar{display:none}
@@ -167,8 +168,8 @@ textarea.inp{min-height:76px;resize:vertical}
 [data-d="a"][data-bg="bila"] .head .glass{background:#F4F3F0;border-color:rgba(0,0,0,.06);box-shadow:none}
 [data-d="a"][data-glass="off"] .glass{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--card);border-color:var(--line);color:var(--ink)}
 [data-d="a"] .hbtns{display:flex;gap:8px;align-items:center}
-.app .hchip{border-radius:99px;min-height:40px;padding:0 12px;display:flex;gap:6px;align-items:center;font-size:13.5px;font-weight:700;color:var(--hdr);white-space:nowrap;flex:none}
-.app .hchip.ic{width:40px;padding:0;justify-content:center}
+.app .hchip{border-radius:99px;min-height:44px;padding:0 12px;display:flex;gap:6px;align-items:center;font-size:13.5px;font-weight:700;color:var(--hdr);white-space:nowrap;flex:none}
+.app .hchip.ic{width:44px;padding:0;justify-content:center}
 .hchip svg{width:19px;height:19px}
 [data-d="a"] .body{padding:0 14px calc(var(--sab) + 120px);display:flex;flex-direction:column;gap:12px}
 [data-d="a"] .card{box-shadow:0 1px 0 var(--line),0 12px 30px -22px rgba(0,0,0,.45)}
@@ -214,7 +215,7 @@ textarea.inp{min-height:76px;resize:vertical}
 .grab{width:40px;height:5px;border-radius:9px;background:var(--mut);opacity:.4;margin:8px auto 0;flex:none}
 .sh-head{display:flex;justify-content:space-between;align-items:center;padding:6px 16px 0;gap:10px}
 .sh-head h2{margin:0;font-size:20px;font-weight:800;overflow-wrap:anywhere}
-.app .x{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--card2);flex:none}
+.app .x{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--card2);flex:none}
 .x svg{width:18px;height:18px}
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .app .opt{border-radius:20px;padding:14px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-height:96px;text-align:left;background:var(--card2);min-width:0}
@@ -226,7 +227,7 @@ textarea.inp{min-height:76px;resize:vertical}
 .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:2px 16px}
 .chips::-webkit-scrollbar{display:none}
 .chips.wrap{flex-wrap:wrap;overflow:visible;margin:0;padding:0}
-.app .chips button{flex:none;border-radius:99px;padding:8px 12px;font-size:13.5px;font-weight:650;display:flex;align-items:center;gap:6px;min-height:38px;box-shadow:inset 0 0 0 1px var(--line);background:var(--card)}
+.app .chips button{flex:none;border-radius:99px;padding:8px 12px;font-size:13.5px;font-weight:650;display:flex;align-items:center;gap:6px;min-height:44px;box-shadow:inset 0 0 0 1px var(--line);background:var(--card)}
 .app .chips button[aria-pressed="true"]{box-shadow:inset 0 0 0 2px var(--ink);background:var(--card2)}
 .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .app .pad button{border-radius:16px;font-size:22px;font-weight:650;min-height:52px;font-variant-numeric:tabular-nums;background:linear-gradient(180deg,hsl(var(--h) 75% 82%),hsl(var(--h) 62% 61%));color:#241D14;text-align:center;display:grid;place-items:center}
@@ -237,7 +238,7 @@ textarea.inp{min-height:76px;resize:vertical}
 .cam input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
 .cam img{width:44px;height:44px;object-fit:cover;border-radius:10px;flex:none}
 .sw{display:flex;flex-wrap:wrap;gap:10px}
-.app .sw button{width:42px;height:42px;border-radius:50%;box-shadow:inset 0 0 0 3px var(--card),0 0 0 1px var(--line)}
+.app .sw button{width:44px;height:44px;border-radius:50%;box-shadow:inset 0 0 0 3px var(--card),0 0 0 1px var(--line)}
 .app .sw button[aria-pressed="true"]{box-shadow:inset 0 0 0 3px var(--card),0 0 0 2.5px var(--ink)}
 .bgs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .app .bgs button{aspect-ratio:4/5;line-height:1.1;text-align:center;border-radius:14px;font-size:11px;font-weight:700;color:#fff;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;text-shadow:0 1px 2px rgba(0,0,0,.6)}
@@ -269,7 +270,7 @@ input[type=range]{width:100%;height:36px;accent-color:var(--acc)}
 .qcat .qn{min-width:0;overflow-wrap:break-word;hyphens:manual}
 .qcat .ci{width:38px;height:38px;border-radius:12px}
 .qcat .ci svg{width:22px;height:22px}
-@media (max-height:700px){.app .qpad button{min-height:42px}.qamt{font-size:38px}.app .qcat{min-height:56px}}
+@media (max-height:700px){.app .qpad button{min-height:44px}.qamt{font-size:38px}.app .qcat{min-height:56px}}
 .app .tbtn{margin-left:4px;padding:6px 10px;border-radius:10px;background:var(--acc);color:var(--on-acc);font-weight:750;font-size:13px;min-height:34px;white-space:nowrap}
 /* ===== Útrata po krocích: napřed velké kategorie, pak částka ===== */
 .sheet,.sheet .sh-body{overflow-x:hidden;touch-action:pan-y}
@@ -359,7 +360,7 @@ input[type=range]{width:100%;height:36px;accent-color:var(--acc)}
 <div class="app" id="app" data-d="a" data-m="dark" data-bg="espresso" data-glass="on"></div>
 <script>
 'use strict';
-const APP_VER='v1.5.0';
+const APP_VER='v1.5.1';
 /* Testovací verze: data rozpočtu se jen čtou z dnešní aplikace (kopie), nikdy se do ní nezapisuje. */
 const SOURCE_URL='https://script.google.com/macros/s/AKfycbyZ2dRJbCIOnFhO82bnHOkGZex7_-3SMwg11Ych0MSyNuvdAqv4AXIxWTEmx-dlO5vS/exec';
 const KEY='rodina.v1', PKEY='rodina.prefs', NOWKEY='rodina.now', SKEY='rodina.sync';
@@ -369,8 +370,8 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const app=$('#app');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtN=n=>new Intl.NumberFormat('cs-CZ').format(Math.round(n||0));
-const fmt=n=>fmtN(n)+' Kč';
-const tis=n=>Math.abs(n)>=10000?fmtN(n/1000)+' tis.':fmtN(n);
+const fmt=n=>fmtN(n)+'\u00a0Kč';
+const tis=n=>Math.abs(n)>=10000?fmtN(n/1000)+'\u00a0tis.':fmtN(n);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
 
@@ -662,7 +663,7 @@ function shell(){
 
 /* ---------- Dnes ---------- */
 function statusLine(s){return s.diff>Math.max(200,s.varPlan*0.01)?`<span class="status warn">${I.warn}o ${fmt(s.diff)} nad tempem</span>`:`<span class="status ok">${I.ok}v plánu${s.diff<-200?', o '+fmt(-s.diff)+' pod tempem':''}</span>`;}
-function paceBar(s){const p=s.varPlan?Math.min(100,s.varSp/s.varPlan*100):0,e=s.day/s.dim*100;return `<div class="pace" data-tip="Útraty mimo pevné platby: ${fmt(s.varSp)} z ${fmt(s.varPlan)}" role="img" aria-label="Utraceno ${Math.round(p)} procent, podle data by mělo být ${Math.round(e)} procent"><i style="width:${p}%"></i><em style="left:${e}%"></em></div><div class="pace-l"><span>utraceno ${Math.round(p)} %</span><span>dnes by mělo být ${Math.round(e)} %</span></div>`;}
+function paceBar(s){const p=s.varPlan?Math.min(100,s.varSp/s.varPlan*100):0,e=s.day/s.dim*100;return `<div class="pace" data-tip="Útraty mimo pevné platby: ${fmt(s.varSp)} z ${fmt(s.varPlan)}" role="img" aria-label="Utraceno ${Math.round(p)} procent, podle data by mělo být ${Math.round(e)} procent"><i style="width:${p}%"></i><em style="left:${e}%"></em></div><div class="pace-l"><span>utraceno ${Math.round(p)} %</span><span>dnes by mělo být ${Math.round(e)} %</span></div>`;}
 function evRow(e,sub){
   const veze=e.who==='S'?(e.veze?`<button class="chip" data-a="veze" data-id="${e.id}" data-on="${e.on}">Veze ${esc(e.veze)}</button>`:`<button class="chip need" data-a="veze" data-id="${e.id}" data-on="${e.on}">Kdo veze?</button>`):'';
   return `<div class="row"><span class="time">${e.time||'<span class="s">čas?</span>'}</span><i class="dot" style="background:var(--p-${e.who})"></i><button class="ttxt" data-a="evedit" data-id="${e.id}" data-on="${e.on}"><span class="t">${esc(e.title)}</span>${sub?`<span class="s">${sub}</span>`:''}</button>${veze}</div>`;
@@ -709,7 +710,7 @@ function donut(s){
   const r=56,C=2*Math.PI*r;let off=0;
   const arcs=items.filter(i=>i.v>0).map(i=>{const len=i.v/tot*C,a=`<circle cx="70" cy="70" r="${r}" fill="none" stroke="${i.c}" stroke-width="20" stroke-dasharray="${Math.max(.5,len-2.5)} ${C}" stroke-dashoffset="${-off}" transform="rotate(-90 70 70)" data-tip="${i.n}: ${fmt(i.v)}"/>`;off+=len;return a;}).join('');
   return `<div class="donut-wrap"><svg class="donut" viewBox="0 0 140 140" role="img" aria-label="Rozdělení útrat podle kategorií">${arcs}<text x="70" y="68" text-anchor="middle" style="font-size:19px;font-weight:800;fill:var(--ink)">${tis(tot)}</text><text x="70" y="86" text-anchor="middle" style="font-size:11px;fill:var(--mut)">Kč utraceno</text></svg>
-  <div class="legend">${items.map(i=>`<div class="row"><i class="dot" style="background:${i.c}"></i><span class="grow">${i.n}</span><b>${tis(i.v)}</b><span class="p">${Math.round(i.v/tot*100)} %</span></div>`).join('')}</div></div>`;
+  <div class="legend">${items.map(i=>`<div class="row"><i class="dot" style="background:${i.c}"></i><span class="grow">${i.n}</span><b>${tis(i.v)}</b><span class="p">${Math.round(i.v/tot*100)} %</span></div>`).join('')}</div></div>`;
 }
 const W=300,H=150,PL=44,PR_=10,PT=12,PB=22;
 const axis=v=>!v?'0':v>=1e6?fmtN(v/1e6*10)/10+' mil.':fmtN(v/1000)+' tis.';
@@ -784,15 +785,15 @@ function subOf(t){const c=CAT[t.cat],n=norm(t.note);if(!n)return 'Bez upřesněn
 function subRows(ym,k){const g={};for(const x of monthTx(ym))if(x.cat===k&&counts(x)){const s=subOf(x);g[s]=(g[s]||0)+x.amt;}
   const a=Object.entries(g).sort((p,q)=>q[1]-p[1]),top=a.slice(0,6),rest=a.slice(6).reduce((s,x)=>s+x[1],0);if(rest)top.push(['Ostatní',rest]);
   const tot=a.reduce((s,x)=>s+x[1],0);
-  return top.map(([n,v])=>`<div class="srow2"><span class="grow">${esc(n)}</span><b class="num">${fmt(v)}</b><span class="p">${Math.round(v/tot*100)} %</span></div>`).join('');}
+  return top.map(([n,v])=>`<div class="srow2"><span class="grow">${esc(n)}</span><b class="num">${fmt(v)}</b><span class="p">${Math.round(v/tot*100)} %</span></div>`).join('');}
 function vStat(){
   const s=stats(month),isCur=month===today().slice(0,7);
   const cats=CATS.filter(c=>s.sp[c.k]>0).sort((a,b)=>s.sp[b.k]-s.sp[a.k]);
   return `<div class="monthnav mtop"><button class="arrow" data-a="month" data-n="-1" aria-label="Předchozí měsíc">${I.l}</button><b>${monthName(month)}</b><button class="arrow" data-a="month" data-n="1" aria-label="Další měsíc" ${isCur?'disabled style="opacity:.3"':''}>${I.r}</button></div>
-  <div class="card"><div class="row"><div class="grow"><div class="big">${fmt(s.total)}</div><div class="mut">utraceno z plánu ${fmt(s.plan)}</div></div>${isCur?statusLine(s):`<span class="status ${s.total>s.plan?'warn':'ok'}">${s.total>s.plan?I.warn+'nad plánem':I.ok+'v plánu'}</span>`}</div>${isCur?kpis(s):''}</div>
+  <div class="card"><div><div class="big">${fmt(s.total)}</div><div class="mut" style="margin-top:6px">utraceno z plánu <span class="num">${fmt(s.plan)}</span></div></div><div>${isCur?statusLine(s):`<span class="status ${s.total>s.plan?'warn':'ok'}">${s.total>s.plan?I.warn+'nad plánem':I.ok+'v plánu'}</span>`}</div>${isCur?kpis(s):''}</div>
   <div class="card"><div class="ch"><h4>Na co jdou peníze</h4></div>${donut(s)}</div>
   <div class="card"><div class="ch"><h4>Kategorie</h4><span class="mut">ťukni pro podrobnosti</span></div><div class="slist">${cats.map(c=>{const p=planOf(c.k),v=s.sp[c.k];
-    return `<details class="scat"><summary><i class="dot" style="background:${c.c}"></i><span class="grow t">${c.n}</span><b class="num">${fmt(v)}</b><span class="p" aria-hidden="true">›</span></summary><div class="subl">${subRows(month,c.k)}${p?`<div class="s">${Math.round(v/p*100)} % z plánu ${fmt(p)}, ${v>p?'přečerpáno o '+fmt(v-p):'zbývá '+fmt(p-v)}</div>`:''}</div></details>`;}).join('')||'<div class="empty">V tomhle měsíci zatím nic.</div>'}</div></div>
+    return `<details class="scat"><summary><i class="dot" style="background:${c.c}"></i><span class="grow t">${c.n}</span><b class="num">${fmt(v)}</b><span class="p" aria-hidden="true">›</span></summary><div class="subl">${subRows(month,c.k)}${p?`<div class="s">${Math.round(v/p*100)} % z plánu ${fmt(p)}, ${v>p?'přečerpáno o '+fmt(v-p):'zbývá '+fmt(p-v)}</div>`:''}</div></details>`;}).join('')||'<div class="empty">V tomhle měsíci zatím nic.</div>'}</div></div>
   <div class="card"><div class="ch"><h4>Po měsících</h4></div>${monthsChart(month)}</div>`;
 }
 

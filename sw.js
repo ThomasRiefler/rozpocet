@@ -1,5 +1,5 @@
 /* Service worker: aplikace se spustí i bez signálu, nová verze se stáhne na pozadí. Verzi zvedat s APP_VER v index.html. */
-const CACHE='rodina-v1.5.0';
+const CACHE='rodina-v1.5.1';
 const ASSETS=['./','index.html','manifest.json','icon-192.png','icon-512.png','apple-touch-icon.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==CACHE).map(x=>caches.delete(x)))).then(()=>self.clients.claim()));});
