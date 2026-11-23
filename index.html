@@ -142,6 +142,17 @@ textarea.inp{min-height:76px;resize:vertical}
 [data-d="p"] .todaybar{border:1px solid var(--line)}
 .dsum{display:flex;gap:6px 14px;flex-wrap:wrap;font-size:13px;color:var(--mut);padding-top:10px;border-top:1px solid var(--line)}
 .dsum b{color:var(--ink)}
+.dmore{display:flex;gap:8px;flex-wrap:wrap}
+/* Měsíc na jeden pohled: prstenec plnění plánu s ryskou, kde bychom dnes měli být */
+.mwrap{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center}
+.ring{width:100px;height:100px;flex:none;display:block}
+.ring.l{width:120px;height:120px}
+.mfig{display:flex;flex-direction:column;gap:8px;min-width:0}
+.mfig div{display:flex;flex-direction:column;gap:1px;min-width:0}
+.mfig small{font-size:12px;color:var(--mut);font-weight:600}
+.mfig b{font-size:clamp(17px,5.2vw,20px);font-weight:800;letter-spacing:-.02em;white-space:nowrap;font-variant-numeric:tabular-nums}
+.mline{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 12px;font-size:13px;color:var(--mut)}
+.tickk{display:inline-block;width:3px;height:12px;background:var(--ink);border-radius:2px;vertical-align:-1px;margin-right:6px}
 @media (prefers-reduced-motion:no-preference){
   .chk>span{transition:transform .18s cubic-bezier(.3,1.6,.5,1),background .15s}
   .done .chk>span{transform:scale(1.08)}
@@ -294,10 +305,15 @@ input[type=range]{width:100%;height:36px;accent-color:var(--acc)}
 .bdg{position:absolute;top:2px;left:calc(50% + 4px);min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:#D93D3D;color:#fff;font-size:11.5px;font-style:normal;font-weight:800;display:grid;place-items:center;line-height:1}
 .scat{border-top:1px solid var(--line)}
 .scat:first-child{border-top:0}
-.scat summary{display:flex;align-items:center;gap:10px;min-height:48px;cursor:pointer;list-style:none}
+.scat summary{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;min-height:48px;padding:8px 0;cursor:pointer;list-style:none}
+.scat .mbar{flex:1 1 100%;margin-left:20px;position:relative;height:8px;border-radius:99px;background:var(--card2)}
+.scat .mbar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px}
+.scat .mbar em{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--ink);border-radius:2px}
+.scat .ms{flex:1 1 100%;margin-left:20px;font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums}
 .scat summary::-webkit-details-marker{display:none}
 .scat[open] summary .p{transform:rotate(90deg)}
 .scat summary .p,.srow2 .p{width:42px;text-align:right;font-size:12px;color:var(--mut)}
+.scat summary .p{width:24px;margin-left:8px;text-align:center;line-height:20px}
 .subl{display:flex;flex-direction:column;gap:6px;padding:0 0 12px 18px}
 .srow2{display:flex;align-items:center;gap:10px;font-size:14px}
 .sublab{font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin-bottom:-4px}
@@ -369,7 +385,7 @@ input[type=range]{width:100%;height:36px;accent-color:var(--acc)}
 <div class="app" id="app" data-d="a" data-m="dark" data-bg="espresso" data-glass="on"></div>
 <script>
 'use strict';
-const APP_VER='v1.6.0';
+const APP_VER='v1.7.0';
 /* Testovací verze: data rozpočtu se jen čtou z dnešní aplikace (kopie), nikdy se do ní nezapisuje. */
 const SOURCE_URL='https://script.google.com/macros/s/AKfycbyZ2dRJbCIOnFhO82bnHOkGZex7_-3SMwg11Ych0MSyNuvdAqv4AXIxWTEmx-dlO5vS/exec';
 const KEY='rodina.v1', PKEY='rodina.prefs', NOWKEY='rodina.now', SKEY='rodina.sync';
@@ -466,7 +482,8 @@ function catRank(){const d0=today(),n=Object.keys(S.budget.tx).length,key=d0+'|'
 function catPlaced(cols){const ord=catRank(),R=Math.ceil(ord.length/cols);return ord.map((k,i)=>({k,st:`grid-row:${i%R+1};grid-column:${cols-Math.floor(i/R)}`}));}
 const catTiles=sel=>catPlaced(3).map(({k,st})=>{const c=CAT[k];return `<button class="cat" data-a="scat" data-k="${k}" style="--cc:${c.c};${st}"${sel?` aria-pressed="${k===sel}"`:''}><span class="ci">${CI[k]}</span>${c.n}</button>`;}).join('');
 const DONUT=['bydleni','jidlo','deti','zdravi','domacnost'];
-const DEFAULT_PLAN={bydleni:36000,jidlo:35000,deti:0,domacnost:0,zdravi:27000,auta:15000,volny:3000,obleceni:3000,sporeni:25000,vzdelani:20000,dovolena:20000};
+/* Plán 130 000 Kč měsíčně (Thomas 23. 11. 2026, dřív 172 000): podle skutečných útrat srpen až říjen 2026, zaokrouhleno na tisíce */
+const DEFAULT_PLAN={bydleni:31000,jidlo:31000,deti:2000,domacnost:5000,zdravi:20000,auta:8000,volny:5000,obleceni:4000,sporeni:21000,vzdelani:0,dovolena:3000};
 
 /* Přeřazení starých záznamů do nových kategorií. Měsíční součty se nemění, mění se jen kategorie. */
 function recat(t){
@@ -703,14 +720,30 @@ function vDnes(){
   const buy=tasksOf('nakup').filter(x=>!x.done);
   const importBanner=!S.imported?`<div class="banner">${I.info}<div class="grow">Testovací verze. Načti kopii dat z dnešního rozpočtu, ten zůstane beze změny.<div style="margin-top:8px"><button class="btn sm" data-a="import">Načíst kopii dat</button></div></div></div>`:'';
   return `${syncBanner(true)}${importBanner}
-  <div class="card tap" data-a="go" data-v="stat" role="button" tabindex="0" aria-label="Dnes můžete utratit, otevřít statistiky"><div class="ch"><h4>Dnes můžete utratit</h4><span class="lnk">Statistiky ›</span></div>
-    <div><div class="big">${fmt(s.perDay)}</div><div class="mut" style="margin-top:6px">denně do konce měsíce · zbývá ${fmt(s.left)}</div></div>${paceBar(s)}<div>${statusLine(s)}</div></div>
+  ${monthCard(s)}
   ${todayCard()}
   <div class="card"><div class="ch"><h4>Dnes a zítra</h4><button class="lnk" data-a="go" data-v="kalendar">Kalendář</button></div><div class="list">${ev.join('')||'<div class="empty">Nic naplánovaného. Akci přidáš tlačítkem +.</div>'}</div></div>
   <div class="card"><div class="ch"><h4>Pro tebe</h4><button class="lnk" data-a="go" data-v="ukoly" data-t="me">Všechny úkoly</button></div><div class="list">${my.slice(0,5).map(taskRow).join('')||`<div class="empty">Nic nečeká. ${PR.me==='Thomas'?'Anna':'Thomas'} ti může úkol zadat.</div>`}</div></div>
   ${usCard()}
   <div class="card"><div class="ch"><h4>Koupit</h4><button class="lnk" data-a="go" data-v="ukoly" data-t="nakup">Seznam</button></div>${buy.length?`<div style="font-size:15px;line-height:1.5">${buy.slice(0,8).map(x=>esc(x.x)).join(' · ')}${buy.length>8?' a další':''}</div>`:'<div class="empty">Seznam je prázdný.</div>'}</div>`;
 }
+
+/* ---------- Měsíc na jeden pohled (Dnes a Statistiky) ---------- */
+const pct=n=>Math.round(n||0)+' %';
+const dnyZbyva=n=>n<=1?'poslední den':n<=4?'ještě '+n+' dny':'ještě '+n+' dní';
+/* p = utraceno z plánu, t = kolik z plánu by mělo být utraceno dnes (pevné platby, jak přišly, plus rovnoměrné tempo ostatních) */
+function ringInfo(s){const p=s.plan?s.total/s.plan:0,t=s.isCur&&s.plan?Math.min(1,(s.fixSp+s.expected)/s.plan):null;
+  return {p,t,warn:s.isCur?s.diff>Math.max(200,s.varPlan*0.01):s.total>s.plan};}
+function ring(s,cls){const {p,t,warn}=ringInfo(s),r=46,C=2*Math.PI*r,col=warn?'var(--warn)':'var(--acc)',len=Math.min(1,p)*C;
+  const arc=p>=1?`<circle cx="60" cy="60" r="${r}" fill="none" stroke="${col}" stroke-width="12"/>`:len>0.5?`<circle cx="60" cy="60" r="${r}" fill="none" stroke="${col}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${Math.max(.01,len-12).toFixed(1)} ${C.toFixed(1)}" stroke-dashoffset="-6" transform="rotate(-90 60 60)"/>`:'';
+  let tick='';if(t!=null){const a=t*2*Math.PI-Math.PI/2,P=d=>[(60+d*Math.cos(a)).toFixed(1),(60+d*Math.sin(a)).toFixed(1)],[x1,y1]=P(r-10),[x2,y2]=P(r+10),l=`x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-linecap="round"`;
+    tick=`<line ${l} stroke="var(--card)" stroke-width="7"/><line ${l} stroke="var(--ink)" stroke-width="3"/>`;}
+  const lab=`Utraceno ${pct(p*100)} z plánu ${fmt(s.plan)}${t!=null?', dnes by mělo být '+pct(t*100):''}`;
+  return `<svg class="ring${cls?' '+cls:''}" viewBox="0 0 120 120" role="img" aria-label="${lab}" data-tip="${lab}"><circle cx="60" cy="60" r="${r}" fill="none" stroke="${col}" stroke-opacity=".2" stroke-width="12"/>${arc}${tick}<text x="60" y="63" text-anchor="middle" style="font-size:25px;font-weight:800;fill:var(--ink);letter-spacing:-.02em">${pct(p*100)}</text><text x="60" y="80" text-anchor="middle" style="font-size:11px;fill:var(--mut)">z plánu</text></svg>`;}
+function monthCard(s){const {t}=ringInfo(s),ym=today().slice(0,7),over=s.left<0;
+  return `<div class="card tap" id="mesic" data-a="go" data-v="stat" role="button" tabindex="0" aria-label="${monthName(ym)}: utraceno ${fmt(s.total)} z plánu ${fmt(s.plan)}, otevřít statistiky"><div class="ch"><h4>${monthName(ym).split(' ')[0]}</h4><span class="lnk">Statistiky ›</span></div>
+  <div class="mwrap">${ring(s)}<div class="mfig"><div><small>Utraceno</small><b>${fmt(s.total)}</b></div><div><small>${over?'Přes plán':'Zbývá z '+tis(s.plan)}</small><b>${fmt(Math.abs(s.left))}</b></div><div><small>Na den, ${dnyZbyva(s.dim-s.day+1)}</small><b>${fmt(s.perDay)}</b></div></div></div>
+  <div class="mline">${statusLine(s)}${t!=null?`<span><i class="tickk"></i>dnes by mělo být ${pct(t*100)}</span>`:''}</div></div>`;}
 
 /* ---------- Peníze ---------- */
 function kpis(s){return `<div class="kpis"><div><small>Na den do konce</small><b>${fmt(s.perDay)}</b></div><div><small>Zbývá celkem</small><b>${fmt(s.left)}</b></div><div><small>Odhad konce měsíce</small><b>${fmt(s.forecast)}</b></div><div><small>Pevné platby z plánu</small><b>${fmtN(Math.round(s.fixSp/1000))} / ${fmtN(Math.round(s.fixPlan/1000))} tis.</b></div></div>`;}
@@ -772,10 +805,16 @@ const sumAmt=tx=>tx.reduce((a,t)=>a+t.amt,0);
 const nPlat=n=>n===1?'1 platba':n>=2&&n<=4?n+' platby':n+' plateb';
 function whoSum(tx){if(!tx.length)return '';const g={};for(const t of tx){const w=t.who||'Bez jména';g[w]=(g[w]||0)+t.amt;}
   return `<div class="dsum">${['Thomas','Anna',...Object.keys(g).filter(w=>w!=='Thomas'&&w!=='Anna')].filter(w=>g[w]).map(w=>`<span>${esc(w)} <b class="num">${fmt(g[w])}</b></span>`).join('')}</div>`;}
-function todayCard(){const tx=todayTx();
+/* Na Dnes poslední dvě dnešní platby, Zobrazit více přidá vždy dalších 10 posledních (i ze dřívějška), ať jde zkontrolovat co a kdo */
+let dnesN=0;
+const recentTx=()=>liveTx().filter(t=>t.d<=today()).sort((a,b)=>b.d.localeCompare(a.d)||b.ts-a.ts);
+function todayCard(){const tx=todayTx(),all=recentTx(),head=tx.slice(0,2),ids=new Set(head.map(t=>t.id));
+  const more=dnesN?all.filter(t=>!ids.has(t.id)).slice(0,dnesN):[],left=all.length-head.length-more.length;
+  let rows=head.map(txRow).join('')||'<div class="empty">Dnes zatím nic. Útratu zapíšeš v Penězích.</div>',last=today();
+  for(const t of more){if(t.d!==last){rows+=`<div class="daygrp">${dRel(t.d)}</div>`;last=t.d;}rows+=txRow(t);}
+  const btns=(left>0&&dnesN<50?`<button class="btn sec sm" data-a="dnesvic">Zobrazit více</button>`:'')+(dnesN?`<button class="btn sec sm" data-a="dnesmin">Skrýt</button>`:'');
   return `<div class="card" id="dnesPlatby"><div class="ch"><h4>Dnešní platby</h4>${tx.length?`<b class="num t">${fmt(sumAmt(tx))}</b>`:''}</div>
-  <div>${tx.slice(0,4).map(txRow).join('')||'<div class="empty">Dnes zatím nic. Útratu zapíšeš v Penězích.</div>'}</div>
-  ${tx.length>4?`<button class="btn sec sm" data-a="dnes" style="align-self:flex-start">Všech ${nPlat(tx.length)}</button>`:''}${whoSum(tx)}</div>`;}
+  <div>${rows}</div>${btns?`<div class="dmore">${btns}</div>`:''}${whoSum(tx)}</div>`;}
 function todayBar(){const tx=todayTx();
   return `<button class="todaybar" id="dnesBar" data-a="dnes" aria-label="Dnešní platby: ${tx.length?nPlat(tx.length)+', '+fmt(sumAmt(tx)):'zatím žádná'}"><span>Dnes</span>${tx.length?`<b class="num">${fmt(sumAmt(tx))}</b><span class="s">${nPlat(tx.length)}</span>`:'<span class="s">zatím žádná platba</span>'}${I.r}</button>`;}
 /* rychlý zápis: vyťukat částku a ťuknout na kategorii = uloženo (fondy se ptají na odklad nebo čerpání) */
@@ -811,12 +850,17 @@ function subRows(ym,k){const g={};for(const x of monthTx(ym))if(x.cat===k&&count
   return top.map(([n,v])=>`<div class="srow2"><span class="grow">${esc(n)}</span><b class="num">${fmt(v)}</b><span class="p">${Math.round(v/tot*100)} %</span></div>`).join('');}
 function vStat(){
   const s=stats(month),isCur=month===today().slice(0,7);
-  const cats=CATS.filter(c=>s.sp[c.k]>0).sort((a,b)=>s.sp[b.k]-s.sp[a.k]);
+  /* Kategorie proti cílovému plánu: i ty, kde se zatím nic neutratilo; ryska = kde by měly být podle data (jen u běžných útrat) */
+  const cats=CATS.filter(c=>s.sp[c.k]>0||planOf(c.k)>0).sort((a,b)=>s.sp[b.k]-s.sp[a.k]||planOf(b.k)-planOf(a.k)),{t}=ringInfo(s),e=s.day/s.dim*100;
+  const top=`<div class="mwrap">${ring(s,'l')}<div class="mfig"><div><small>Utraceno</small><b>${fmt(s.total)}</b></div><div><small>${s.left<0?'Přes plán':'Zbývá'}</small><b>${fmt(Math.abs(s.left))}</b></div><div><small>Plán na měsíc</small><b>${fmt(s.plan)}</b></div></div></div>`;
+  const kp=isCur?`<div class="kpis"><div><small>Uplynulo z měsíce</small><b>${pct(e)}</b><small>${s.day}. den z ${s.dim}</small></div><div><small>Dnes by mělo být</small><b>${pct(t*100)}</b><small>utraceno ${pct(s.total/s.plan*100)}</small></div><div><small>Odhad konce měsíce</small><b>${fmt(s.forecast)}</b><small>${pct(s.forecast/s.plan*100)} plánu</small></div><div><small>Na den do konce</small><b>${fmt(s.perDay)}</b><small>${dnyZbyva(s.dim-s.day+1)}</small></div></div>`:'';
   return `<div class="monthnav mtop"><button class="arrow" data-a="month" data-n="-1" aria-label="Předchozí měsíc">${I.l}</button><b>${monthName(month)}</b><button class="arrow" data-a="month" data-n="1" aria-label="Další měsíc" ${isCur?'disabled style="opacity:.3"':''}>${I.r}</button></div>
-  <div class="card"><div><div class="big">${fmt(s.total)}</div><div class="mut" style="margin-top:6px">utraceno z plánu <span class="num">${fmt(s.plan)}</span></div></div><div>${isCur?statusLine(s):`<span class="status ${s.total>s.plan?'warn':'ok'}">${s.total>s.plan?I.warn+'nad plánem':I.ok+'v plánu'}</span>`}</div>${isCur?kpis(s):''}</div>
+  <div class="card" id="statTop">${top}${kp}<div>${isCur?statusLine(s):`<span class="status ${s.total>s.plan?'warn':'ok'}">${s.total>s.plan?I.warn+'nad plánem o '+fmt(s.total-s.plan):I.ok+'v plánu'}</span>`}</div></div>
+  <div class="card"><div class="ch"><h4>Kategorie proti plánu</h4><button class="lnk" data-a="go" data-v="nastaveni" data-sec="plan">Upravit plán</button></div><div class="slist">${cats.map(c=>{const p=planOf(c.k),v=s.sp[c.k],r=p?v/p:0,over=p&&v>p;
+    const mark=isCur&&p&&!c.fix?`<em style="left:${e.toFixed(1)}%"></em>`:'';
+    const lab=p?`${pct(r*100)} z ${fmt(p)}${over?` · <span class="fast">přes plán o ${fmt(v-p)}</span>`:c.fund?' · fond':c.fix?' · pevné platby':''}`:'bez plánu';
+    return `<details class="scat"><summary><i class="dot" style="background:${c.c}"></i><span class="grow t">${c.n}</span><b class="num">${fmt(v)}</b><span class="p" aria-hidden="true">›</span>${p?`<span class="mbar" aria-hidden="true"><i style="width:${Math.min(100,r*100).toFixed(1)}%;background:${c.c}"></i>${mark}</span>`:''}<span class="ms">${lab}</span></summary><div class="subl">${subRows(month,c.k)||'<div class="s">Zatím nic.</div>'}${p?`<div class="s">${v>p?'přečerpáno o '+fmt(v-p):'zbývá '+fmt(p-v)}</div>`:''}</div></details>`;}).join('')||'<div class="empty">V tomhle měsíci zatím nic.</div>'}</div></div>
   <div class="card"><div class="ch"><h4>Na co jdou peníze</h4></div>${donut(s)}</div>
-  <div class="card"><div class="ch"><h4>Kategorie</h4><span class="mut">ťukni pro podrobnosti</span></div><div class="slist">${cats.map(c=>{const p=planOf(c.k),v=s.sp[c.k];
-    return `<details class="scat"><summary><i class="dot" style="background:${c.c}"></i><span class="grow t">${c.n}</span><b class="num">${fmt(v)}</b><span class="p" aria-hidden="true">›</span></summary><div class="subl">${subRows(month,c.k)}${p?`<div class="s">${Math.round(v/p*100)} % z plánu ${fmt(p)}, ${v>p?'přečerpáno o '+fmt(v-p):'zbývá '+fmt(p-v)}</div>`:''}</div></details>`;}).join('')||'<div class="empty">V tomhle měsíci zatím nic.</div>'}</div></div>
   <div class="card"><div class="ch"><h4>Po měsících</h4></div>${monthsChart(month)}</div>`;
 }
 
@@ -953,7 +997,7 @@ function syncDraftInputs(){const n=$('#s-note'),d=$('#s-date');if(n)draft.note=n
 function act(el,ev){
   const a=el.dataset.a,d=el.dataset;
   switch(a){
-  case 'go': view=d.v;if(d.t)taskTab=d.t;sheet=null;more=false;if(d.v==='penize'||d.v==='stat')month=today().slice(0,7);render();if(d.sec){const x=document.getElementById(d.sec);if(x)x.scrollIntoView({block:'start'});}else{const sc=$('#sc');if(sc)sc.scrollTop=0;}break;
+  case 'go': view=d.v;if(d.t)taskTab=d.t;sheet=null;more=false;dnesN=0;if(d.v==='penize'||d.v==='stat')month=today().slice(0,7);render();if(d.sec){const x=document.getElementById(d.sec);if(x)x.scrollIntoView({block:'start'});}else{const sc=$('#sc');if(sc)sc.scrollTop=0;}break;
   case 'add': openSheet({k:'add'});break;
   case 'close': closeSheet();break;
   case 'spend': draft={amt:0,cat:'jidlo',note:'',d:today()};openSheet({k:'spend',pick:true});break;
@@ -1008,6 +1052,8 @@ function act(el,ev){
   case 'vezeset': {const k=sheet.id+'|'+sheet.on;S.veze[k]={v:d.v==='Nikdo'?'':d.v,ts:Date.now()};persist();closeSheet();toast(d.v==='Nikdo'?'Zatím nikdo':'Veze '+d.v,true);break;}
   case 'txall': txAll=true;render(true);break;
   case 'dnes': openSheet({k:'dnes'});break;
+  case 'dnesvic': dnesN=Math.min(50,dnesN+10);render(true);break;
+  case 'dnesmin': dnesN=0;render(true);break;
   case 'month': {txAll=false;const n=prevMonth(month,-(+d.n));if(n>today().slice(0,7))break;month=n;
     // přepínač měsíce je nahoře nad rychlým zápisem, takže zůstane pod prstem; vyrovnání pro jistotu, kdyby se nad ním něco změnilo
     const nav=$('.monthnav'),y0=nav?nav.getBoundingClientRect().top:0;render(true);
