@@ -133,6 +133,15 @@ textarea.inp{min-height:76px;resize:vertical}
 .sync.ok i{background:var(--good)}
 .banner{border-radius:16px;padding:12px 14px;background:var(--card2);font-size:13.5px;display:flex;gap:10px;align-items:flex-start}
 .banner svg{width:18px;height:18px;flex:none;margin-top:1px;color:var(--acc-t)}
+.sbanner{border-radius:16px;padding:12px 14px;font-size:13.5px;display:flex;gap:10px;align-items:flex-start;background:var(--card2);background:color-mix(in srgb,var(--warn) 18%,var(--card2));color:var(--ink)}
+.sbanner svg{width:18px;height:18px;flex:none;margin-top:1px;color:var(--warn)}
+.todaybar{display:flex;align-items:center;gap:8px;width:100%;min-height:48px;padding:10px 16px;margin:0 0 10px;border-radius:18px;background:var(--card);color:var(--ink);font-size:15px;text-align:left}
+.todaybar b{font-weight:800}.todaybar .s{color:var(--mut);font-size:13px}
+.todaybar svg{width:16px;height:16px;margin-left:auto;color:var(--mut);flex:none}
+[data-d="a"] .todaybar{box-shadow:0 1px 0 var(--line),0 12px 30px -22px rgba(0,0,0,.45)}
+[data-d="p"] .todaybar{border:1px solid var(--line)}
+.dsum{display:flex;gap:6px 14px;flex-wrap:wrap;font-size:13px;color:var(--mut);padding-top:10px;border-top:1px solid var(--line)}
+.dsum b{color:var(--ink)}
 @media (prefers-reduced-motion:no-preference){
   .chk>span{transition:transform .18s cubic-bezier(.3,1.6,.5,1),background .15s}
   .done .chk>span{transform:scale(1.08)}
@@ -360,7 +369,7 @@ input[type=range]{width:100%;height:36px;accent-color:var(--acc)}
 <div class="app" id="app" data-d="a" data-m="dark" data-bg="espresso" data-glass="on"></div>
 <script>
 'use strict';
-const APP_VER='v1.5.1';
+const APP_VER='v1.6.0';
 /* Testovací verze: data rozpočtu se jen čtou z dnešní aplikace (kopie), nikdy se do ní nezapisuje. */
 const SOURCE_URL='https://script.google.com/macros/s/AKfycbyZ2dRJbCIOnFhO82bnHOkGZex7_-3SMwg11Ych0MSyNuvdAqv4AXIxWTEmx-dlO5vS/exec';
 const KEY='rodina.v1', PKEY='rodina.prefs', NOWKEY='rodina.now', SKEY='rodina.sync';
@@ -693,9 +702,10 @@ function vDnes(){
   const my=tasksOf('todo',PR.me).filter(x=>!x.done);
   const buy=tasksOf('nakup').filter(x=>!x.done);
   const importBanner=!S.imported?`<div class="banner">${I.info}<div class="grow">Testovací verze. Načti kopii dat z dnešního rozpočtu, ten zůstane beze změny.<div style="margin-top:8px"><button class="btn sm" data-a="import">Načíst kopii dat</button></div></div></div>`:'';
-  return `${importBanner}
+  return `${syncBanner(true)}${importBanner}
   <div class="card tap" data-a="go" data-v="stat" role="button" tabindex="0" aria-label="Dnes můžete utratit, otevřít statistiky"><div class="ch"><h4>Dnes můžete utratit</h4><span class="lnk">Statistiky ›</span></div>
     <div><div class="big">${fmt(s.perDay)}</div><div class="mut" style="margin-top:6px">denně do konce měsíce · zbývá ${fmt(s.left)}</div></div>${paceBar(s)}<div>${statusLine(s)}</div></div>
+  ${todayCard()}
   <div class="card"><div class="ch"><h4>Dnes a zítra</h4><button class="lnk" data-a="go" data-v="kalendar">Kalendář</button></div><div class="list">${ev.join('')||'<div class="empty">Nic naplánovaného. Akci přidáš tlačítkem +.</div>'}</div></div>
   <div class="card"><div class="ch"><h4>Pro tebe</h4><button class="lnk" data-a="go" data-v="ukoly" data-t="me">Všechny úkoly</button></div><div class="list">${my.slice(0,5).map(taskRow).join('')||`<div class="empty">Nic nečeká. ${PR.me==='Thomas'?'Anna':'Thomas'} ti může úkol zadat.</div>`}</div></div>
   ${usCard()}
@@ -749,12 +759,25 @@ function monthsChart(ym){
 function catRows(s){return CATS.map(c=>{const p=planOf(c.k),v=s.sp[c.k],r=p?v/p:0,fast=s.isCur&&!c.fix&&p&&r>s.day/s.dim*1.6&&r<=1,over=p&&r>1;
   return `<div class="catrow"><i class="dot" style="background:${c.c}"></i><span class="t">${c.n}</span><span class="num t">${fmt(v)}</span><div class="bar"><i style="width:${Math.min(100,r*100)}%;background:${c.c}"></i></div>
   <div class="sub"><span>${over?'<span class="fast">přečerpáno o '+fmt(v-p)+'</span>':fast?'<span class="fast">rychlé tempo</span>':c.fund?'fond, odklad':c.fix?'pevné platby':p?'v plánu':'bez plánu'}</span><span>${p?'zbývá '+fmt(Math.max(0,p-v))+' z '+tis(p):''}</span></div></div>`;}).join('');}
+function txRow(t){const c=CAT[t.cat]||CAT.volny;
+  return `<button class="row" data-a="txedit" data-id="${t.id}" style="width:100%;padding:9px 0;border-top:1px solid var(--line);text-align:left"><i class="dot" style="background:${c.c}"></i><span class="grow"><span class="t" style="display:block">${esc(t.note||c.n)}</span><span class="s">${c.n}${t.fund==='out'?' · z fondu':''} · ${esc(t.who||'')}</span></span>${t.rc?I.clip:''}<span class="num t">${fmt(t.amt)}</span></button>`;}
 function txList(ym){
   const tx=monthTx(ym).sort((a,b)=>b.d.localeCompare(a.d)||b.ts-a.ts);if(!tx.length)return '<div class="empty">Žádné záznamy.</div>';
-  let out='',last='';for(const t of (txAll?tx:tx.slice(0,60))){if(t.d!==last){out+=`<div class="daygrp">${dRel(t.d)}</div>`;last=t.d;}const c=CAT[t.cat]||CAT.volny;
-    out+=`<button class="row" data-a="txedit" data-id="${t.id}" style="width:100%;padding:9px 0;border-top:1px solid var(--line);text-align:left"><i class="dot" style="background:${c.c}"></i><span class="grow"><span class="t" style="display:block">${esc(t.note||c.n)}</span><span class="s">${c.n}${t.fund==='out'?' · z fondu':''} · ${esc(t.who||'')}</span></span>${t.rc?I.clip:''}<span class="num t">${fmt(t.amt)}</span></button>`;}
+  let out='',last='';for(const t of (txAll?tx:tx.slice(0,60))){if(t.d!==last){out+=`<div class="daygrp">${dRel(t.d)}</div>`;last=t.d;}out+=txRow(t);}
   return out+(tx.length>60&&!txAll?`<button class="btn sec sm" data-a="txall" style="margin-top:10px">Zobrazit všech ${tx.length} záznamů</button>`:'');
 }
+/* Dnešní platby obou: na Dnes hned vidět, v Penězích jedním ťuknutím nad zápisem (dřív až dole v Záznamech) */
+const todayTx=()=>liveTx().filter(t=>t.d===today()).sort((a,b)=>b.ts-a.ts);
+const sumAmt=tx=>tx.reduce((a,t)=>a+t.amt,0);
+const nPlat=n=>n===1?'1 platba':n>=2&&n<=4?n+' platby':n+' plateb';
+function whoSum(tx){if(!tx.length)return '';const g={};for(const t of tx){const w=t.who||'Bez jména';g[w]=(g[w]||0)+t.amt;}
+  return `<div class="dsum">${['Thomas','Anna',...Object.keys(g).filter(w=>w!=='Thomas'&&w!=='Anna')].filter(w=>g[w]).map(w=>`<span>${esc(w)} <b class="num">${fmt(g[w])}</b></span>`).join('')}</div>`;}
+function todayCard(){const tx=todayTx();
+  return `<div class="card" id="dnesPlatby"><div class="ch"><h4>Dnešní platby</h4>${tx.length?`<b class="num t">${fmt(sumAmt(tx))}</b>`:''}</div>
+  <div>${tx.slice(0,4).map(txRow).join('')||'<div class="empty">Dnes zatím nic. Útratu zapíšeš v Penězích.</div>'}</div>
+  ${tx.length>4?`<button class="btn sec sm" data-a="dnes" style="align-self:flex-start">Všech ${nPlat(tx.length)}</button>`:''}${whoSum(tx)}</div>`;}
+function todayBar(){const tx=todayTx();
+  return `<button class="todaybar" id="dnesBar" data-a="dnes" aria-label="Dnešní platby: ${tx.length?nPlat(tx.length)+', '+fmt(sumAmt(tx)):'zatím žádná'}"><span>Dnes</span>${tx.length?`<b class="num">${fmt(sumAmt(tx))}</b><span class="s">${nPlat(tx.length)}</span>`:'<span class="s">zatím žádná platba</span>'}${I.r}</button>`;}
 /* rychlý zápis: vyťukat částku a ťuknout na kategorii = uloženo (fondy se ptají na odklad nebo čerpání) */
 let qAmt=0,qWho=null;
 const qAmtHtml=()=>`${qAmt?fmtN(qAmt):'0'} <small>Kč</small>`;
@@ -767,7 +790,7 @@ function quickSpend(){const who=qWho||PR.me;
 function vPenize(){
   const s=stats(month),pr=presets(),rec=recurring(),isCur=month===today().slice(0,7);
   const recSum=rec.reduce((a,r)=>a+r.amt,0);
-  return `<div class="monthnav mtop"><button class="arrow" data-a="month" data-n="-1" aria-label="Předchozí měsíc">${I.l}</button><b>${monthName(month)}</b><button class="arrow" data-a="month" data-n="1" aria-label="Další měsíc" ${isCur?'disabled style="opacity:.3"':''}>${I.r}</button></div>${isCur?quickSpend():''}<div class="card">
+  return `<div class="monthnav mtop"><button class="arrow" data-a="month" data-n="-1" aria-label="Předchozí měsíc">${I.l}</button><b>${monthName(month)}</b><button class="arrow" data-a="month" data-n="1" aria-label="Další měsíc" ${isCur?'disabled style="opacity:.3"':''}>${I.r}</button></div>${syncBanner(false)}${isCur?todayBar()+quickSpend():''}<div class="card">
     ${isCur?`<div class="ch"><h4>Den ${s.day} z ${s.dim}</h4>${statusLine(s)}</div>${paceBar(s)}${kpis(s)}`:`<div class="row"><div class="grow"><div class="big">${fmt(s.total)}</div><div class="mut">utraceno z plánu ${fmt(s.plan)}</div></div><span class="status ${s.total>s.plan?'warn':'ok'}">${s.total>s.plan?I.warn+'nad plánem o '+fmt(s.total-s.plan):I.ok+'v plánu'}</span></div>`}</div>
   ${pr.length&&isCur?`<div class="card"><div class="ch"><h4>Na jedno ťuknutí</h4><span class="mut">opakuje se 3× a víc</span></div><div class="presets">${pr.map((p,i)=>`<button class="preset" data-a="preset" data-i="${i}"><b>${esc(p.note)}</b><span>${fmt(p.amt)}</span></button>`).join('')}</div></div>`:''}
   <div class="card"><div class="ch"><h4>Průběh měsíce</h4><span class="mut">ťukni do grafu</span></div>${burnup(s,month)}</div>
@@ -907,6 +930,7 @@ function sheetHtml(){
     ${e.id?`<button class="btn dang sm" data-a="evdel" style="align-self:flex-start">${sheet.confirm?'Opravdu smazat? Ťukni znovu':e.rep==='w'?'Smazat celou opakovanou akci':'Smazat akci'}</button>${e.rep==='w'&&sheet.on?`<button class="btn sec sm" data-a="evskip" style="align-self:flex-start">Zrušit jen ${dRel(sheet.on)}</button>`:''}`:''}`;
     foot=`<button class="btn" data-a="evsave">${e.id?'Uložit':'Přidat do kalendáře'}</button>`;}
   else if(k==='veze'){head='Kdo veze?';body=`<p class="note">${esc(sheet.title)} · ${dLong(sheet.on)}</p><div class="opts">${['Thomas','Anna','Babička','Nikdo'].map(p=>`<button class="opt" style="min-height:64px" data-a="vezeset" data-v="${p}"><b>${p}</b></button>`).join('')}</div>`;}
+  else if(k==='dnes'){const tx=todayTx();head='Dnešní platby';body=`<div><div class="big num">${fmt(sumAmt(tx))}</div><div class="mut" style="margin-top:4px">${tx.length?nPlat(tx.length)+', ťukni pro úpravu':'Dnes zatím nic.'}</div></div><div style="margin-top:8px">${tx.map(txRow).join('')}</div>${whoSum(tx)}`;}
   else if(k==='export'){head='Záloha dat';body=`<p class="note">Zkopíruj text a ulož si ho třeba do poznámek.</p><textarea class="inp" id="expT" style="min-height:200px;font-size:12px" readonly>${esc(JSON.stringify(S))}</textarea>`;foot=`<button class="btn" data-a="copyexp">Zkopírovat</button>`;}
   else if(k==='reset'){head='Smazat testovací data?';body=`<p>Smaže útraty, úkoly a akce v tomhle telefonu. Dnešní rozpočet zůstane beze změny.</p>`;foot=`<button class="btn sec" data-a="close">Zrušit</button><button class="btn dang" data-a="resetok">Smazat</button>`;}
   return `<div class="shade" data-a="close"></div><section class="sheet" role="dialog" aria-modal="true" aria-label="${head.replace(/<[^>]+>/g,'').trim()}"><div class="grab"></div><div class="sh-head">${lead}<h2>${head}</h2>${close}</div><div class="sh-body">${body}</div>${foot?`<div class="sh-foot">${foot}</div>`:''}</section>`;
@@ -983,6 +1007,7 @@ function act(el,ev){
   case 'veze': {const e=S.events[d.id];openSheet({k:'veze',id:d.id,on:d.on,title:e?e.title:''});break;}
   case 'vezeset': {const k=sheet.id+'|'+sheet.on;S.veze[k]={v:d.v==='Nikdo'?'':d.v,ts:Date.now()};persist();closeSheet();toast(d.v==='Nikdo'?'Zatím nikdo':'Veze '+d.v,true);break;}
   case 'txall': txAll=true;render(true);break;
+  case 'dnes': openSheet({k:'dnes'});break;
   case 'month': {txAll=false;const n=prevMonth(month,-(+d.n));if(n>today().slice(0,7))break;month=n;
     // přepínač měsíce je nahoře nad rychlým zápisem, takže zůstane pod prstem; vyrovnání pro jistotu, kdyby se nad ním něco změnilo
     const nav=$('.monthnav'),y0=nav?nav.getBoundingClientRect().top:0;render(true);
@@ -1031,6 +1056,17 @@ async function doImport(){
 let syncCfg={u:'',k:''};try{Object.assign(syncCfg,JSON.parse(store.get(SKEY)||'{}'));}catch(e){}
 const syncUrl=()=>SYNC_URL||syncCfg.u, syncOn=()=>!!(syncUrl()&&syncCfg.k);
 let syncing=false,syncAgain=false,syncT=null,syncState='';
+/* Zdraví propojení: telefon si pamatuje poslední úspěch a výpadek ukáže na Dnes a v Penězích, ne jen v Nastavení.
+   (23. 11. 2026 se rozbil soubor ve skriptu a každý telefon dny viděl jen svoje platby, aniž by to bylo poznat.) */
+const OKKEY='rodina.syncok';let syncOkAt=+(store.get(OKKEY)||0)||0,syncErr='';
+const otherGen=()=>other()==='Anna'?'Anny':'Thomase';
+function syncBanner(home){
+  const btn=(t)=>`<div style="margin-top:8px"><button class="btn sm" data-a="go" data-v="nastaveni" data-sec="sync">${t}</button></div>`;
+  if(!syncOn())return home&&liveTx().length?`<div class="sbanner" id="syncWarn" role="status">${I.warn}<div class="grow">Tenhle telefon není propojený s druhým, platby ${otherGen()} tu neuvidíš.${btn('Propojit')}</div></div>`:'';
+  if(!syncErr||(syncErr==='signal'&&Date.now()-syncOkAt<12*3600e3))return '';
+  const kdy=syncOkAt?' Naposledy propojeno '+ago(syncOkAt)+'.':'';
+  const txt=syncErr==='klic'?'Kód rodiny nesedí, telefony se nepropojují.':syncErr==='signal'?`Telefon je dlouho bez spojení, platby ${otherGen()} tu můžou chybět.`:`Propojení s druhým telefonem teď nefunguje, platby ${otherGen()} tu chybí. Tvoje zápisy se neztratí a doplní se samy, až propojení zase půjde.`;
+  return `<div class="sbanner" id="syncWarn" role="status">${I.warn}<div class="grow">${txt}${kdy}${syncErr==='klic'?btn('Zkontrolovat kód'):''}</div></div>`;}
 /* Kdo je propojený: každé zařízení při synchronizaci zapíše značku dev|<id> do veze (skript ji slučuje jako ostatní záznamy, takže nepotřebuje nové nasazení) */
 const DKEY='rodina.dev';let devId=store.get(DKEY);if(!devId){devId=uid();store.set(DKEY,devId);}
 const devOs=()=>{const u=navigator.userAgent;return /iPad/.test(u)?'iPad':/iPhone|iPod/.test(u)?'iPhone':/Android/.test(u)?'Android':'počítač';};
@@ -1053,9 +1089,12 @@ async function syncNow(first){
     const n=Object.values(S.budget.tx).filter(x=>!x.del).length;
     if(!n&&!S.imported&&first!=='po-importu'){syncing=false;await doImport();if(!S.imported)return;return syncNow(first==='connect'?'connect-po':'po-importu');}
     syncState='Propojeno, naposledy '+PRGT.format(nowDate());syncLabel();
-    if(JSON.stringify(S)!==before&&!busy())render(true);notifyNew();
+    const hadErr=syncErr;syncErr='';syncOkAt=Date.now();store.set(OKKEY,String(syncOkAt));
+    if((JSON.stringify(S)!==before||hadErr)&&!busy())render(true);notifyNew();
     if(/^connect/.test(first||''))toast('Propojeno, '+n+' záznamů');
-  }catch(e){syncState=e.message==='klic'?'Špatný kód rodiny':e.name==='AbortError'||e instanceof TypeError?'Bez signálu, zkusím to později':'Skript odpověděl chybou';syncLabel();if(/^connect/.test(first||''))toast(syncState);}
+  }catch(e){const off=e.name==='AbortError'||e instanceof TypeError,prev=syncErr;syncErr=e.message==='klic'?'klic':off?'signal':'chyba';
+    syncState=e.message==='klic'?'Špatný kód rodiny':off?'Bez signálu, zkusím to později':'Skript odpověděl chybou';syncLabel();
+    if(syncErr!==prev&&!busy())render(true);if(/^connect/.test(first||''))toast(syncState);}
   finally{syncing=false;if(syncAgain){syncAgain=false;syncSoon();}}
 }
 function syncSave(){const g=id=>{const e=document.getElementById(id);return e?e.value.trim():'';};
